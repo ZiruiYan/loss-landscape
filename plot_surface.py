@@ -58,12 +58,23 @@ def setup_surface_file(args, surf_file, dir_file):
     f = h5py.File(surf_file, 'a')
     f['dir_file'] = dir_file
 
+
+    # check they are int and convert to int
+    assert args.xnum == int(args.xnum)
+
+    # covnert to int
+    xnum = int(args.xnum)
+
     # Create the coordinates(resolutions) at which the function is evaluated
-    xcoordinates = np.linspace(args.xmin, args.xmax, num=args.xnum)
+    xcoordinates = np.linspace(args.xmin, args.xmax, num=xnum)
     f['xcoordinates'] = xcoordinates
 
     if args.y:
-        ycoordinates = np.linspace(args.ymin, args.ymax, num=args.ynum)
+        assert args.ynum == int(args.ynum)
+        # covnert to int
+        ynum = int(args.ynum)
+
+        ycoordinates = np.linspace(args.ymin, args.ymax, num=ynum)
         f['ycoordinates'] = ycoordinates
     f.close()
 
