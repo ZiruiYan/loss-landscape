@@ -112,14 +112,14 @@ def h5_to_vtp(surf_file, surf_name='train_loss', log=False, zmax=-1, interp=-1):
     output_file.write('      <PointData>\n')
     output_file.write('        <DataArray type="Float32" Name="zvalue" NumberOfComponents="1" format="ascii" RangeMin="{}" RangeMax="{}">\n'.format(min_value_array[2], max_value_array[2]))
     for vertexcount in range(number_points):
-        if (vertexcount % 6) is 0:
+        if (vertexcount % 6) == 0:
             output_file.write('          ')
         output_file.write('{}'.format(z_array[vertexcount]))
-        if (vertexcount % 6) is 5:
+        if (vertexcount % 6) == 5:
             output_file.write('\n')
         else:
             output_file.write(' ')
-    if (vertexcount % 6) is not 5:
+    if (vertexcount % 6) != 5:
         output_file.write('\n')
     output_file.write('        </DataArray>\n')
     output_file.write('      </PointData>\n')
@@ -129,14 +129,14 @@ def h5_to_vtp(surf_file, surf_name='train_loss', log=False, zmax=-1, interp=-1):
     if (show_polys and not show_points):
         output_file.write('        <DataArray type="Float32" Name="averaged zvalue" NumberOfComponents="1" format="ascii" RangeMin="{}" RangeMax="{}">\n'.format(avg_min_value, avg_max_value))
         for vertexcount in range(number_polys):
-            if (vertexcount % 6) is 0:
+            if (vertexcount % 6) == 0:
                 output_file.write('          ')
             output_file.write('{}'.format(averaged_z_value_array[vertexcount]))
-            if (vertexcount % 6) is 5:
+            if (vertexcount % 6) == 5:
                 output_file.write('\n')
             else:
                 output_file.write(' ')
-        if (vertexcount % 6) is not 5:
+        if (vertexcount % 6) != 5:
             output_file.write('\n')
         output_file.write('        </DataArray>\n')
     output_file.write('      </CellData>\n')
@@ -145,14 +145,14 @@ def h5_to_vtp(surf_file, surf_name='train_loss', log=False, zmax=-1, interp=-1):
     output_file.write('      <Points>\n')
     output_file.write('        <DataArray type="Float32" Name="Points" NumberOfComponents="3" format="ascii" RangeMin="{}" RangeMax="{}">\n'.format(min_value, max_value))
     for vertexcount in range(number_points):
-        if (vertexcount % 2) is 0:
+        if (vertexcount % 2) == 0:
             output_file.write('          ')
         output_file.write('{} {} {}'.format(x_array[vertexcount], y_array[vertexcount], z_array[vertexcount]))
-        if (vertexcount % 2) is 1:
+        if (vertexcount % 2) == 1:
             output_file.write('\n')
         else:
             output_file.write(' ')
-    if (vertexcount % 2) is not 1:
+    if (vertexcount % 2) != 1:
         output_file.write('\n')
     output_file.write('        </DataArray>\n')
     output_file.write('      </Points>\n')
@@ -162,27 +162,27 @@ def h5_to_vtp(surf_file, surf_name='train_loss', log=False, zmax=-1, interp=-1):
     output_file.write('        <DataArray type="Int64" Name="connectivity" format="ascii" RangeMin="0" RangeMax="{}">\n'.format(number_points - 1))
     if (show_points):
         for vertexcount in range(number_points):
-            if (vertexcount % 6) is 0:
+            if (vertexcount % 6) == 0:
                 output_file.write('          ')
             output_file.write('{}'.format(vertexcount))
-            if (vertexcount % 6) is 5:
+            if (vertexcount % 6) == 5:
                 output_file.write('\n')
             else:
                 output_file.write(' ')
-        if (vertexcount % 6) is not 5:
+        if (vertexcount % 6) != 5:
             output_file.write('\n')
     output_file.write('        </DataArray>\n')
     output_file.write('        <DataArray type="Int64" Name="offsets" format="ascii" RangeMin="1" RangeMax="{}">\n'.format(number_points))
     if (show_points):
         for vertexcount in range(number_points):
-            if (vertexcount % 6) is 0:
+            if (vertexcount % 6) == 0:
                 output_file.write('          ')
             output_file.write('{}'.format(vertexcount + 1))
-            if (vertexcount % 6) is 5:
+            if (vertexcount % 6) == 5:
                 output_file.write('\n')
             else:
                 output_file.write(' ')
-        if (vertexcount % 6) is not 5:
+        if (vertexcount % 6) != 5:
             output_file.write('\n')
     output_file.write('        </DataArray>\n')
     output_file.write('      </Verts>\n')
@@ -212,28 +212,28 @@ def h5_to_vtp(surf_file, surf_name='train_loss', log=False, zmax=-1, interp=-1):
             stride_value = column_count * matrix_size
             for row_count in range(poly_size):
                 temp_index = stride_value + row_count
-                if (polycount % 2) is 0:
+                if (polycount % 2) == 0:
                     output_file.write('          ')
                 output_file.write('{} {} {} {}'.format(temp_index, (temp_index + 1), (temp_index + matrix_size + 1), (temp_index + matrix_size)))
-                if (polycount % 2) is 1:
+                if (polycount % 2) == 1:
                     output_file.write('\n')
                 else:
                     output_file.write(' ')
                 polycount += 1
-        if (polycount % 2) is 1:
+        if (polycount % 2) == 1:
             output_file.write('\n')
     output_file.write('        </DataArray>\n')
     output_file.write('        <DataArray type="Int64" Name="offsets" format="ascii" RangeMin="1" RangeMax="{}">\n'.format(number_polys))
     if (show_polys):
         for polycount in range(number_polys):
-            if (polycount % 6) is 0:
+            if (polycount % 6) == 0:
                 output_file.write('          ')
             output_file.write('{}'.format((polycount + 1) * 4))
-            if (polycount % 6) is 5:
+            if (polycount % 6) == 5:
                 output_file.write('\n')
             else:
                 output_file.write(' ')
-        if (polycount % 6) is not 5:
+        if (polycount % 6) != 5:
             output_file.write('\n')
     output_file.write('        </DataArray>\n')
     output_file.write('      </Polys>\n')
