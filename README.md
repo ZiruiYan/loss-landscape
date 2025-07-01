@@ -12,10 +12,19 @@ The random direction(s) and loss surface values are stored in HDF5 (`.h5`) files
 
 ## Setup
 
-**Environment**: One or more multi-GPU node(s) with the following software/libraries installed:
+**Environment**: One GPU node with the following software/libraries installed:
 ```
 pip install -r requirements.txt
 ```
+If you want one or more multi-GPU node(s) to accelerate it, install openmpi through
+```
+sudo apt install libopenmpi-dev openmpi-bin
+```
+Verify the success of install by
+```
+mpirun --version
+```
+
 
 **Pre-trained models**:
 The code accepts pre-trained PyTorch models for the CIFAR-10 dataset.
@@ -27,6 +36,15 @@ Some of the pre-trained models and plotted figures can be downloaded here:
 - [ResNet-56-noshort](https://drive.google.com/a/cs.umd.edu/file/d/1eUvYy3HaiCVHTzi3MHEZGgrGOPACLMkR/view?usp=sharing) (20 MB)
 - [DenseNet-121](https://drive.google.com/a/cs.umd.edu/file/d/1oU0nDFv9CceYM4uW6RcOULYS-rnWxdVl/view?usp=sharing) (75 MB)
 
+Download necessary models (here we need VGG-9 and ResNet-56), and place the **last** folder **directly** under `./cifar10/trained_nets`
+```
+cifar10
+└── trained_nets
+     ├── resnet56_sgd_lr=0.1_bs=128_wd=0.0005
+     ├── vgg9_sgd_lr=0.1_bs=8192_wd=0.0_save_epoch=1
+     └── vgg9_sgd_lr=0.1_bs=128_wd=0.0_save_epoch=1
+```
+
 **Data preprocessing**:
 The data pre-processing method used for visualization should be consistent with the one used for model training.
 No data augmentation (random cropping or horizontal flipping) is used in calculating the loss values.
@@ -37,14 +55,22 @@ No data augmentation (random cropping or horizontal flipping) is used in calcula
 The 1D linear interpolation method [1] evaluates the loss values along the direction between two minimizers of the same network loss function. This method has been used to compare the flatness of minimizers trained with different batch sizes [2].
 A 1D linear interpolation plot is produced using the `plot_surface.py` method.
 
-```
-mpirun -n 4 python plot_surface.py --mpi --cuda --model vgg9 --x=-0.5:1.5:401 --dir_type states \
---model_file cifar10/trained_nets/vgg9_sgd_lr=0.1_bs=128_wd=0.0_save_epoch=1/model_300.t7 \
---model_file2 cifar10/trained_nets/vgg9_sgd_lr=0.1_bs=8192_wd=0.0_save_epoch=1/model_300.t7 --plot
-```
-- `--x=-0.5:1.5:401` sets the range and resolution for the plot.  The x-coordinates in the plot will run from -0.5 to 1.5 (the minimizers are located at 0 and 1), and the loss value will be evaluated at 401 locations along this line.
-- `--dir_type states` indicates the direction contains dimensions for all parameters as well as the statistics of the BN layers (`running_mean` and `running_var`). Note that ignoring `running_mean` and `running_var` cannot produce correct loss values when plotting two solutions togeather in the same figure.  
-- The two model files contain network parameters describing the two distinct minimizers of the loss function.  The plot will interpolate between these two minima.
+- Without mpirun (openmpi), run
+  ```
+  python plot_surface.py --cuda --model vgg9 --x=-0.5:1.5:401 --dir_type states \
+  --model_file cifar10/trained_nets/vgg9_sgd_lr=0.1_bs=128_wd=0.0_save_epoch=1/model_300.t7 \
+  --model_file2 cifar10/trained_nets/vgg9_sgd_lr=0.1_bs=8192_wd=0.0_save_epoch=1/model_300.t7 --plot
+  ```
+- With mpirun, run
+
+  ```
+  mpirun -n 4 python plot_surface.py --mpi --cuda --model vgg9 --x=-0.5:1.5:401 --dir_type states \
+  --model_file cifar10/trained_nets/vgg9_sgd_lr=0.1_bs=128_wd=0.0_save_epoch=1/model_300.t7 \
+  --model_file2 cifar10/trained_nets/vgg9_sgd_lr=0.1_bs=8192_wd=0.0_save_epoch=1/model_300.t7 --plot
+  ```
+  - `--x=-0.5:1.5:401` sets the range and resolution for the plot.  The x-coordinates in the plot will run from -0.5 to 1.5 (the minimizers are located at 0 and 1), and the loss value will be evaluated at 401 locations along this line.
+  - `--dir_type states` indicates the direction contains dimensions for all parameters as well as the statistics of the BN layers (`running_mean` and `running_var`). Note that ignoring `running_mean` and `running_var` cannot produce correct loss values when plotting two solutions togeather in the same figure.  
+  - The two model files contain network parameters describing the two distinct minimizers of the loss function.  The plot will interpolate between these two minima.
 
 ![VGG-9 SGD, WD=0](doc/images/vgg9_sgd_lr=0.1_bs=128_wd=0.0_save_epoch=1_model_300.t7_vgg9_sgd_lr=0.1_bs=8192_wd=0.0_save_epoch=1_model_300.t7_states.h5_[-1.0,1.0,401].h5_1d_loss_acc.jpg)
 
@@ -54,17 +80,24 @@ mpirun -n 4 python plot_surface.py --mpi --cuda --model vgg9 --x=-0.5:1.5:401 --
 A random direction with the same dimension as the model parameters is created and "filter normalized."
 Then we can sample loss values along this direction.
 
-```
-mpirun -n 4 python plot_surface.py --mpi --cuda --model vgg9 --x=-1:1:51 \
---model_file cifar10/trained_nets/vgg9_sgd_lr=0.1_bs=128_wd=0.0_save_epoch=1/model_300.t7 \
---dir_type weights --xnorm filter --xignore biasbn --plot
-```
+- Without mpirun (openmpi), run
+  ```
+  python plot_surface.py --cuda --model vgg9 --x=-1:1:51 \
+  --model_file cifar10/trained_nets/vgg9_sgd_lr=0.1_bs=128_wd=0.0_save_epoch=1/model_300.t7 \
+  --dir_type weights --xnorm filter --xignore biasbn --plot
+  ```
+- With mpirun, run
+  ```
+  mpirun -n 4 python plot_surface.py --mpi --cuda --model vgg9 --x=-1:1:51 \
+  --model_file cifar10/trained_nets/vgg9_sgd_lr=0.1_bs=128_wd=0.0_save_epoch=1/model_300.t7 \
+  --dir_type weights --xnorm filter --xignore biasbn --plot
+  ```
  - `--dir_type weights` indicates the direction has the same dimensions as the learned parameters, including bias and parameters in the BN layers.
  - `--xnorm filter` normalizes the random direction at the filter level. Here, a "filter" refers to the parameters that produce a single feature map.  For fully connected layers, a "filter" contains the weights that contribute to a single neuron.
  - `--xignore biasbn` ignores the direction corresponding to bias and BN parameters (fill the corresponding entries in the random vector with zeros).
 
 
- ![VGG-9 SGD, WD=0](doc/images/vgg9_sgd_lr=0.1_bs=128_wd=0.0_save_epoch=1/model_300.t7_weights_xignore=biasbn_xnorm=filter.h5_[-1.0,1.0,51].h5_1d_loss_acc.jpg)
+![VGG-9 SGD, WD=0](doc/images/vgg9_sgd_lr=0.1_bs=128_wd=0.0_save_epoch=1/model_300.t7_weights_xignore=biasbn_xnorm=filter.h5_[-1.0,1.0,51].h5_1d_loss_acc.jpg)
 
 
 
@@ -75,11 +108,18 @@ We can also customize the appearance of the 1D plots by calling `plot_1D.py` onc
 
 To plot the loss contours, we choose two random directions and normalize them in the same way as the 1D plotting.
 
-```
-mpirun -n 4 python plot_surface.py --mpi --cuda --model resnet56 --x=-1:1:51 --y=-1:1:51 \
---model_file cifar10/trained_nets/resnet56_sgd_lr=0.1_bs=128_wd=0.0005/model_300.t7 \
---dir_type weights --xnorm filter --xignore biasbn --ynorm filter --yignore biasbn  --plot
-```
+- Without mpirun (openmpi), run
+  ```
+  python plot_surface.py --cuda --model resnet56 --x=-1:1:51 --y=-1:1:51 \
+  --model_file cifar10/trained_nets/resnet56_sgd_lr=0.1_bs=128_wd=0.0005/model_300.t7 \
+  --dir_type weights --xnorm filter --xignore biasbn --ynorm filter --yignore biasbn  --plot
+  ```
+- With mpirun, run
+  ```
+  mpirun -n 4 python plot_surface.py --mpi --cuda --model resnet56 --x=-1:1:51 --y=-1:1:51 \
+  --model_file cifar10/trained_nets/resnet56_sgd_lr=0.1_bs=128_wd=0.0005/model_300.t7 \
+  --dir_type weights --xnorm filter --xignore biasbn --ynorm filter --yignore biasbn  --plot
+  ```
 
 ![ResNet-56](doc/images/resnet56_sgd_lr=0.1_bs=128_wd=0.0005/model_300.t7_weights_xignore=biasbn_xnorm=filter_yignore=biasbn_ynorm=filter.h5_[-1.0,1.0,51]x[-1.0,1.0,51].h5_train_loss_2dcontour.jpg)
 
@@ -92,6 +132,10 @@ python plot_2D.py --surf_file path_to_surf_file --surf_name train_loss
 - `--vmin` and `--vmax` sets the range of values to be plotted.
 - `--vlevel` sets the step of the contours.
 
+e.g.
+```
+python plot_2D.py --surf_file ./cifar10/trained_nets/resnet56_sgd_lr=0.1_bs=128_wd=0.0005/model_300.t7_weights_xignore=biasbn_xnorm=filter_yignore=biasbn_ynorm=filter.h5_[-1.0,1.0,51]x[-1.0,1.0,51].h5 --surf_name train_loss
+```
 
 ## Visualizing 3D loss surface
 `plot_2D.py` can make a basic 3D loss surface plot with `matplotlib`.
@@ -105,6 +149,11 @@ To do this, you must
 python h52vtp.py --surf_file path_to_surf_file --surf_name train_loss --zmax  10 --log
 ```
    This will generate a [VTK](https://www.kitware.com/products/books/VTKUsersGuide.pdf) file containing the loss surface with max value 10 in the log scale.
+
+e.g.
+```
+python h52vtp.py --surf_file ./cifar10/trained_nets/resnet56_sgd_lr=0.1_bs=128_wd=0.0005/model_300.t7_weights_xignore=biasbn_xnorm=filter_yignore=biasbn_ynorm=filter.h5_[-1.0,1.0,51]x[-1.0,1.0,51].h5 --surf_name train_loss --zmax  10 --log
+```
 
 2. Open the `.vtp` file with ParaView. In ParaView, open the `.vtp` file with the VTK reader. Click the eye icon in the `Pipeline Browser` to make the figure show up. You can drag the surface around, and change the colors in the `Properties` window.
 
